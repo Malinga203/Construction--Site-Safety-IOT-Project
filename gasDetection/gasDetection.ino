@@ -8,19 +8,18 @@ const char* password = "";
 #define LED_PIN D2
 
 int gasValue = 0;
-int threshold = 500; //safety limit
+int threshold = 500; // safety limit
 
 WiFiClient client;
-const char* host = ""; //server
-String apiKey = "";   
+const char* host = "";
+String apiKey = "";
 
 void setup() {
-
   Serial.begin(115200);
+  delay(100);
 
   pinMode(BUZZER_PIN, OUTPUT);
   pinMode(LED_PIN, OUTPUT);
-
   digitalWrite(BUZZER_PIN, LOW);
   digitalWrite(LED_PIN, LOW);
 
@@ -28,16 +27,13 @@ void setup() {
 }
 
 void loop() {
-
   readGasSensor();
   checkGasLevel();
   sendDataWiFi();
-
-  delay(15000);
+  delay(15000); // Delay for cloud update
 }
 
 void connectWiFi() {
-
   Serial.println("Connecting to WiFi...");
   WiFi.begin(ssid, password);
 
@@ -46,44 +42,36 @@ void connectWiFi() {
     Serial.print(".");
   }
 
-  Serial.println("\nWiFi Connected");
+  Serial.println("\nWiFi Connected!");
+  Serial.print("IP Address: ");
+  Serial.println(WiFi.localIP());
 }
 
 void readGasSensor() {
-
   gasValue = analogRead(GAS_PIN);
-
   Serial.print("Gas Value: ");
   Serial.println(gasValue);
 }
 
 void checkGasLevel() {
-
   if (gasValue > threshold) {
-
     Serial.println("DANGER: Gas Detected");
-
     digitalWrite(BUZZER_PIN, HIGH);
     digitalWrite(LED_PIN, HIGH);
-  }
-  else {
-
+  } else {
     Serial.println("SAFE");
-
     digitalWrite(BUZZER_PIN, LOW);
     digitalWrite(LED_PIN, LOW);
   }
 }
-//pending
-void sendDataWiFi() {
 
+void sendDataWiFi() {
   if (!client.connect(host, 80)) {
     Serial.println("Connection Failed");
     return;
   }
 
-  String url = "/update?api_key=" + apiKey +
-               "&field1=" + String(gasValue);
+  String url = "/update?api_key=" + apiKey + "&field1=" + String(gasValue);
 
   client.print(String("GET ") + url + " HTTP/1.1\r\n" +
                "Host: " + host + "\r\n" +
